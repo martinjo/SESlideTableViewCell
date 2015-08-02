@@ -79,6 +79,7 @@ typedef NS_ENUM(NSInteger, SESlideTableViewCellSide) {
 
 @property (nonatomic, weak) id<SESlideTableViewCellDelegate> delegate;
 @property (nonatomic, readonly) SESlideTableViewCellSlideState slideState;
+@property (nonatomic, readonly) SESlideTableViewCellSlideState actualSlideState;
 /**
  A Boolean value that indicates whether the cell displays a left slide indicator.
  

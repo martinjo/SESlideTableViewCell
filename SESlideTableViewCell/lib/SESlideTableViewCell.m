@@ -367,6 +367,16 @@ typedef NS_OPTIONS(NSUInteger, SESlideStateOptions) {
 @synthesize showsRightSlideIndicator = m_showsRightSlideIndicator;
 @synthesize indicatorColor = m_indicatorColor;
 
+-(SESlideTableViewCellSlideState)actualSlideState
+{
+    if(m_snapshotContainerView.frame.origin.x < 0)
+        return SESlideTableViewCellSlideStateLeft;
+    else if(m_snapshotContainerView.frame.origin.x > 0)
+        return SESlideTableViewCellSlideStateRight;
+    else
+        return SESlideTableViewCellSlideStateCenter;
+}
+
 - (instancetype)initWithCoder:(NSCoder *)aDecoder{
     if (self = [super initWithCoder:aDecoder]) {
         [self setUp];
@@ -630,9 +640,9 @@ typedef NS_OPTIONS(NSUInteger, SESlideStateOptions) {
 			switch (m_slideState) {
 				case SESlideTableViewCellSlideStateCenter: {
 					CGPoint translation = [gesture translationInView:self];
-					if (translation.x < 0 && [self canSlideToState:SESlideTableViewCellSlideStateRight]) {
+					if (translation.x < 0 && !(m_preparedSlideStates & SESlideStateOptionRight) && [self canSlideToState:SESlideTableViewCellSlideStateRight]) {
 						[self prepareToSlideRight];
-					} else if (translation.x > 0 && [self canSlideToState:SESlideTableViewCellSlideStateLeft]) {
+					} else if (translation.x > 0 && !(m_preparedSlideStates & SESlideStateOptionLeft) &&  [self canSlideToState:SESlideTableViewCellSlideStateLeft]) {
 						[self prepareToSlideLeft];
 					}
 				}	break;
@@ -705,7 +715,8 @@ typedef NS_OPTIONS(NSUInteger, SESlideStateOptions) {
 #pragma mark -
 
 - (BOOL)canSlideToState:(SESlideTableViewCellSlideState)slideState {
-	if (m_delegate && [m_delegate respondsToSelector:@selector(slideTableViewCell:canSlideToState:)]) {
+	if (m_delegate && [m_delegate respondsToSelector:@selector(slideTableViewCell:canSlideToState:)])
+    {
 		if (! [m_delegate slideTableViewCell:self canSlideToState:slideState]) {
 			return NO;
 		}
