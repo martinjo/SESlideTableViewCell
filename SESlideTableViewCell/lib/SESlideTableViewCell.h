@@ -66,6 +66,30 @@ typedef NS_ENUM(NSInteger, SESlideTableViewCellSide) {
  @param slideState The state that the cell want to be.
  */
 - (BOOL)slideTableViewCell:(SESlideTableViewCell*)cell canSlideToState:(SESlideTableViewCellSlideState)slideState;
+/**
+ Tells the delegate that the slide state of the cell will change.
+ 
+ Even when this function is called, the cell's slide state may not be the state which this function tells.
+ To know the cell's slide state, use slideTableViewCell:DidSlideToState: instead.
+ 
+ @param cell The cell informing the delegate of the event.
+ @param slideState The slide state which the cell may become.
+ */
+- (void)slideTableViewCell:(SESlideTableViewCell*)cell willSlideToState:(SESlideTableViewCellSlideState)slideState;
+/**
+ Tells the delegate that the slide state of the cell did change.
+ 
+ @param cell The cell informing the delegate of the event.
+ @param slideState The slide state which the cell became.
+ */
+- (void)slideTableViewCell:(SESlideTableViewCell*)cell didSlideToState:(SESlideTableViewCellSlideState)slideState;
+/**
+ Tells the delegate that the cell will show buttons of the side.
+ 
+ @param cell The cell informing the delegate of the event.
+ @param side The side of the buttons which the cell will show.
+ */
+- (void)slideTableViewCell:(SESlideTableViewCell *)cell wilShowButtonsOfSide:(SESlideTableViewCellSide)side;
 @end
 
 /**
@@ -113,7 +137,7 @@ typedef NS_ENUM(NSInteger, SESlideTableViewCellSide) {
 /**
  Adds a button to the cell.
  
- the button view is stretched to fit the height of the cell and the width of the button.
+ The button view is stretched to fit the height of the cell and the width of the button.
  
  @param button A view that is shown as a button.
  @param buttonWidth The width of the button
@@ -136,6 +160,13 @@ typedef NS_ENUM(NSInteger, SESlideTableViewCellSide) {
  @param animated YES if the state change is happened with animation, otherwise NO.
  */
 - (void)setSlideState:(SESlideTableViewCellSlideState)slideState animated:(BOOL)animated;
+
+/**
+ Update snapshot of the content view.
+ 
+ Call this function when the content of the cell is updated while a button is shown.
+ */
+- (void)updateContentViewSnapshot;
 
 @end
 
@@ -160,6 +191,17 @@ typedef NS_ENUM(NSInteger, SESlideTableViewCellSide) {
 - (void)addButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor side:(SESlideTableViewCellSide)side;
 
 /**
+ Adds a text button. The width of the button is automatically set by its text length.
+ 
+ @param text A text of the button.
+ @param textColor A color of the text.
+ @param backgroundColor A color of background of the button.
+ @param	font A font of the text.
+ @param side A side where the button is added.
+ */
+- (void)addButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor font:(UIFont*)font side:(SESlideTableViewCellSide)side;
+
+/**
  Adds an image button.
  
  The width of the button is automatically set by its image width.
@@ -181,6 +223,16 @@ typedef NS_ENUM(NSInteger, SESlideTableViewCellSide) {
 - (void)addLeftButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor;
 
 /**
+ Adds a text button to the left side.
+ 
+ @param text a text of the button.
+ @param textColor a color of the text of the button.
+ @param backgroundColor a color of the background of the button.
+ @param	font a font of the text.
+ */
+- (void)addLeftButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor font:(UIFont*)font;
+
+/**
  Adds a text button to the right side.
  
  @param text a text of the button.
@@ -188,6 +240,16 @@ typedef NS_ENUM(NSInteger, SESlideTableViewCellSide) {
  @param backgroundColor a color of the background of the button
  */
 - (void)addRightButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor;
+
+/**
+ Adds a text button to the right side.
+ 
+ @param text a text of the button.
+ @param textColor a color of the text of the button.
+ @param backgroundColor a color of the background of the button.
+ @param	font a font of the text.
+ */
+- (void)addRightButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor font:(UIFont*)font;
 
 /**
  Adds an image button to the left side.

@@ -583,6 +583,22 @@ typedef NS_OPTIONS(NSUInteger, SESlideStateOptions) {
 	}
 }
 
+- (void)updateContentViewSnapshot {
+	if (m_snapshotView == nil) {
+		return;
+	}
+	
+	// take snapshot with hidding unnecessary content
+	m_slideView.hidden = YES;
+	UIView* newSnapshot = [self snapshotViewAfterScreenUpdates:YES];
+	m_slideView.hidden = NO;
+	
+	// replace snapshotview
+	[m_snapshotView removeFromSuperview];
+	m_snapshotView = newSnapshot;
+	[m_snapshotContainerView addSubview:m_snapshotView];
+}
+
 #pragma mark -
 
 - (void)handlePanGesture:(UIPanGestureRecognizer*)gesture {
@@ -745,6 +761,9 @@ typedef NS_OPTIONS(NSUInteger, SESlideStateOptions) {
 	if (m_preparedSlideStates & SESlideStateOptionLeft) {
 		return;
 	}
+	if (m_delegate && [m_delegate respondsToSelector:@selector(slideTableViewCell:wilShowButtonsOfSide:)]) {
+		[m_delegate slideTableViewCell:self wilShowButtonsOfSide:SESlideTableViewCellSideLeft];
+	}
 	m_preparedSlideStates |= SESlideStateOptionLeft;
 	if (!m_snapshotContainerView) {
 		UITableViewCellSelectionStyle presevedSelectionStyle = self.selectionStyle;
@@ -779,6 +798,9 @@ typedef NS_OPTIONS(NSUInteger, SESlideStateOptions) {
 - (void)prepareToSlideRight {
 	if (m_preparedSlideStates & SESlideStateOptionRight) {
 		return;
+	}
+	if (m_delegate && [m_delegate respondsToSelector:@selector(slideTableViewCell:wilShowButtonsOfSide:)]) {
+		[m_delegate slideTableViewCell:self wilShowButtonsOfSide:SESlideTableViewCellSideRight];
 	}
 	m_preparedSlideStates |= SESlideStateOptionRight;
 	if (!m_snapshotContainerView) {
@@ -838,6 +860,10 @@ typedef NS_OPTIONS(NSUInteger, SESlideStateOptions) {
 - (void)animateToSlideState:(SESlideTableViewCellSlideState)slideState velocity:(CGFloat)velocity {
 	UIView* snapshotView = m_snapshotContainerView;
 	
+	if (m_delegate && [m_delegate respondsToSelector:@selector(slideTableViewCell:willSlideToState:)]) {
+		[m_delegate slideTableViewCell:self willSlideToState:slideState];
+	}
+	
 	CGFloat targetPositionX = [self originXForSlideState:slideState];
 	CGFloat currentPositionX = snapshotView.frame.origin.x;
 	CGFloat distance = targetPositionX - currentPositionX;
@@ -861,6 +887,9 @@ typedef NS_OPTIONS(NSUInteger, SESlideStateOptions) {
 			if (slideState == SESlideTableViewCellSlideStateCenter) {
 				m_preparedSlideStates = SESlideStateOptionNone;
 				[self cleanUpSlideView];
+			}
+			if (m_delegate && [m_delegate respondsToSelector:@selector(slideTableViewCell:didSlideToState:)]) {
+				[m_delegate slideTableViewCell:self didSlideToState:slideState];
 			}
 		}
 	}];
@@ -936,6 +965,17 @@ typedef NS_OPTIONS(NSUInteger, SESlideStateOptions) {
 	[self addButton:label buttonWidth:size.width + BUTTON_MARGIN backgroundColor:backgroundColor side:side];
 }
 
+- (void)addButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor font:(UIFont*)font side:(SESlideTableViewCellSide)side {
+	UILabel* label = [UILabel new];
+	label.text = text;
+	label.textAlignment = NSTextAlignmentCenter;
+	label.textColor = textColor;
+	label.font = font;
+	CGSize size = [label sizeThatFits:CGSizeMake(FLT_MAX, FLT_MAX)];
+	label.frame = CGRectMake(0, 0, size.width, size.height);
+	[self addButton:label buttonWidth:size.width + BUTTON_MARGIN backgroundColor:backgroundColor side:side];
+}
+
 - (void)addButtonWithImage:(UIImage*)image backgroundColor:(UIColor*)backgroundColor side:(SESlideTableViewCellSide)side {
 	UIImageView* imageView = [[UIImageView alloc] initWithImage:image];
 	UIView* view = [[UIView alloc] initWithFrame:imageView.frame];
@@ -954,8 +994,14 @@ typedef NS_OPTIONS(NSUInteger, SESlideStateOptions) {
 - (void)addLeftButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor {
 	[self addButtonWithText:text textColor:textColor backgroundColor:backgroundColor side:SESlideTableViewCellSideLeft];
 }
+- (void)addLeftButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor font:(UIFont*)font {
+	[self addButtonWithText:text textColor:textColor backgroundColor:backgroundColor font:font side:SESlideTableViewCellSideLeft];
+}
 - (void)addRightButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor {
 	[self addButtonWithText:text textColor:textColor backgroundColor:backgroundColor side:SESlideTableViewCellSideRight];
+}
+- (void)addRightButtonWithText:(NSString*)text textColor:(UIColor*)textColor backgroundColor:(UIColor*)backgroundColor font:(UIFont*)font {
+	[self addButtonWithText:text textColor:textColor backgroundColor:backgroundColor font:font side:SESlideTableViewCellSideRight];
 }
 - (void)addLeftButtonWithImage:(UIImage*)image backgroundColor:(UIColor*)backgroundColor{
 	[self addButtonWithImage:image backgroundColor:backgroundColor side:SESlideTableViewCellSideLeft];
